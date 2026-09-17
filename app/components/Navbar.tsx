@@ -16,14 +16,19 @@ export default function Navbar() {
 
   const links: NavItem[] = [
     {
-      href: '/ipd',
-      label: '2.1.2.1 (IPD)',
-      icon: BedDouble,
+      href: '/sss-dental',
+      label: 'ประกันสังคมทำฟัน (2.1.1.1)',
+      icon: Stethoscope,
     },
     {
       href: '/opd-doctor',
-      label: '2.1.1.2 (OPD)',
+      label: 'OPD (2.1.1.2)',
       icon: Stethoscope,
+    },
+    {
+      href: '/ipd',
+      label: 'IPD (2.1.2.1)',
+      icon: BedDouble,
     },
   ];
 

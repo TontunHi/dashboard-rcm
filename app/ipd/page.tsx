@@ -13,7 +13,7 @@ import {
   Users, Activity, DollarSign, Clock, Search, 
   Download, Filter, RefreshCw, FileText, AlertCircle, AlertTriangle, CheckCircle, HelpCircle,
   Building, Stethoscope, BedDouble, ChevronRight, Calendar, CalendarRange, RotateCcw, ChevronDown, X,
-  CreditCard, Receipt
+  CreditCard, Receipt, Send
 } from 'lucide-react';
 
 const COLORS = ['#059669', '#10b981', '#14b8a6', '#0d9488', '#34d399', '#2dd4bf', '#047857'];
@@ -40,6 +40,29 @@ export default function AppBrowserTabs() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   });
+
+  // Telegram Notification Test State
+  const [telegramLoading, setTelegramLoading] = useState<boolean>(false);
+
+  const handleSendTelegramTest = async () => {
+    if (!confirm('ต้องการส่งข้อความสรุปชาร์ตค้าง IPD เข้ากลุ่ม Telegram ตอนนี้เลยใช่หรือไม่?')) {
+      return;
+    }
+    setTelegramLoading(true);
+    try {
+      const res = await fetch('/api/telegram-notify', { method: 'POST' });
+      const json = await res.json();
+      if (json.success) {
+        alert('✅ ' + json.message);
+      } else {
+        alert('❌ เกิดข้อผิดพลาด: ' + (json.error || 'ไม่สามารถส่งข้อความได้'));
+      }
+    } catch (err: any) {
+      alert('❌ ไม่สามารถเชื่อมต่อ API ได้: ' + err.message);
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
 
   const thaiMonths = [
     { value: 1, name: 'มกราคม' },
@@ -466,152 +489,239 @@ export default function AppBrowserTabs() {
 
       {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 space-y-5">
-        {/* Global Control Bar (Date range & Server indicator) */}
-        <section className="bg-white rounded-xl shadow-sm border border-emerald-100 p-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Mode Selector Buttons */}
-            <div className="bg-emerald-50/70 p-1 rounded-lg flex items-center border border-emerald-100">
-              <button
-                type="button"
-                onClick={() => setDateMode('custom')}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition cursor-pointer ${
-                  dateMode === 'custom' 
-                    ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
-                    : 'text-emerald-700 hover:text-emerald-950'
-                }`}
+        {/* Global Control Bar (Date range, Filters & Actions) */}
+        <section className="bg-white rounded-xl shadow-sm border border-emerald-100 p-4 space-y-3.5">
+          {/* แถวที่ 1: การเลือกช่วงเวลา & ปุ่มดึงข้อมูล & ส่งออกข้อมูล */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Mode Selector Buttons */}
+              <div className="bg-emerald-50/70 p-1 rounded-lg flex items-center border border-emerald-100 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setDateMode('custom')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition cursor-pointer ${
+                    dateMode === 'custom' 
+                      ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
+                      : 'text-emerald-700 hover:text-emerald-950'
+                  }`}
+                >
+                  📅 กำหนดเอง (วันถึงวัน)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDateMode('month');
+                    handleSelectMonth(selectedMonth);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition cursor-pointer ${
+                    dateMode === 'month' 
+                      ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
+                      : 'text-emerald-700 hover:text-emerald-950'
+                  }`}
+                >
+                  🗓️ รายเดือน ({currentCalYear + 543})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDateMode('year');
+                    handleSelectFiscalYear(selectedYear);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition cursor-pointer ${
+                    dateMode === 'year' 
+                      ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
+                      : 'text-emerald-700 hover:text-emerald-950'
+                  }`}
+                >
+                  📆 รายปีงบประมาณ (1 ต.ค. - 30 ก.ย.)
+                </button>
+              </div>
+
+              {/* Mode 1: Custom Date Range (วันถึงวัน) */}
+              {dateMode === 'custom' && (
+                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200/80">
+                  <span className="text-xs font-medium text-slate-500 pl-1.5">
+                    จำหน่าย:
+                  </span>
+                  <input 
+                    type="date" 
+                    value={ds1} 
+                    onChange={e => setDs1(e.target.value)} 
+                    className="border border-slate-200 rounded-md px-2 py-1 text-xs bg-white text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  />
+                  <span className="text-slate-400 text-xs">ถึง</span>
+                  <input 
+                    type="date" 
+                    value={ds2} 
+                    onChange={e => setDs2(e.target.value)} 
+                    className="border border-slate-200 rounded-md px-2 py-1 text-xs bg-white text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  />
+                </div>
+              )}
+
+              {/* Mode 2: Month Range */}
+              {dateMode === 'month' && (
+                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200/80">
+                  <span className="text-xs font-medium text-slate-500 pl-1.5">เดือน:</span>
+                  <div className="relative inline-flex items-center">
+                    <select
+                      value={selectedMonth}
+                      onChange={e => handleSelectMonth(Number(e.target.value))}
+                      className="appearance-none border border-slate-200 bg-white hover:border-emerald-400 text-slate-800 font-semibold rounded-md pl-2.5 pr-7 py-1 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer"
+                    >
+                      {thaiMonths.map(m => (
+                        <option key={m.value} value={m.value}>
+                          เดือน {m.name} (ปี {currentCalYear + 543})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+              )}
+
+              {/* Mode 3: Fiscal Year Range (1 ต.ค. - 30 ก.ย.) */}
+              {dateMode === 'year' && (
+                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200/80">
+                  <span className="text-xs font-medium text-slate-500 pl-1.5">ปีงบประมาณ:</span>
+                  <div className="relative inline-flex items-center">
+                    <select
+                      value={selectedYear}
+                      onChange={e => handleSelectFiscalYear(Number(e.target.value))}
+                      className="appearance-none border border-slate-200 bg-white hover:border-emerald-400 text-slate-800 font-semibold rounded-md pl-2.5 pr-7 py-1 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer"
+                    >
+                      {availableYears.map(yr => (
+                        <option key={yr} value={yr}>
+                          ปีงบประมาณ {yr + 543}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+              )}
+
+              {/* ปุ่มดึงข้อมูล */}
+              <button 
+                onClick={() => fetchWithDates(ds1, ds2)} 
+                disabled={mainTab === 'ipd' ? ipdLoading : opdLoading}
+                className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
               >
-                📅 กำหนดเอง (วันถึงวัน)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDateMode('month');
-                  handleSelectMonth(selectedMonth);
-                }}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition cursor-pointer ${
-                  dateMode === 'month' 
-                    ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
-                    : 'text-emerald-700 hover:text-emerald-950'
-                }`}
-              >
-                🗓️ รายเดือน ({currentCalYear + 543})
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDateMode('year');
-                  handleSelectFiscalYear(selectedYear);
-                }}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition cursor-pointer ${
-                  dateMode === 'year' 
-                    ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
-                    : 'text-emerald-700 hover:text-emerald-950'
-                }`}
-              >
-                📆 รายปีงบประมาณ (1 ต.ค. - 30 ก.ย.)
+                <Filter className="h-3.5 w-3.5" /> ดึงข้อมูล
               </button>
             </div>
 
-            {/* Mode 1: Custom Date Range (วันถึงวัน) */}
-            {dateMode === 'custom' && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-slate-500">
-                  จำหน่าย:
-                </span>
-                <input 
-                  type="date" 
-                  value={ds1} 
-                  onChange={e => setDs1(e.target.value)} 
-                  className="border border-emerald-200 rounded-lg px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
-                />
-                <span className="text-slate-400 text-xs">ถึง</span>
-                <input 
-                  type="date" 
-                  value={ds2} 
-                  onChange={e => setDs2(e.target.value)} 
-                  className="border border-emerald-200 rounded-lg px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
-                />
-                <button 
-                  onClick={() => fetchWithDates(ds1, ds2)} 
-                  disabled={mainTab === 'ipd' ? ipdLoading : opdLoading}
-                  className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-medium px-3.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+            {/* Action Buttons: ส่งออก Excel & ทดสอบส่ง Telegram */}
+            <div className="flex items-center gap-2">
+              {mainTab === 'ipd' && (
+                <button
+                  onClick={handleSendTelegramTest}
+                  disabled={telegramLoading}
+                  className="inline-flex items-center gap-1.5 bg-sky-50 hover:bg-sky-100 active:bg-sky-200 text-sky-700 hover:text-sky-900 text-xs font-semibold px-3 py-2 rounded-lg border border-sky-200 shadow-2xs transition cursor-pointer disabled:opacity-50"
+                  title="ทดสอบส่งสรุปชาร์ตค้างเข้ากลุ่ม Telegram ตอนนี้"
                 >
-                  <Filter className="h-3.5 w-3.5" /> ดึงข้อมูล
+                  <Send className={`h-3.5 w-3.5 ${telegramLoading ? 'animate-bounce' : ''}`} />
+                  <span>{telegramLoading ? 'กำลังส่ง...' : 'ทดสอบส่ง Telegram'}</span>
                 </button>
-              </div>
-            )}
+              )}
 
-            {/* Mode 2: Month Range */}
-            {dateMode === 'month' && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-slate-500">เลือกเดือน:</span>
+              <button 
+                onClick={mainTab === 'ipd' ? exportIPDCSV : exportOPDCSV}
+                className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 hover:text-slate-900 text-xs font-semibold px-3.5 py-2 rounded-lg border border-slate-300 shadow-2xs transition cursor-pointer"
+              >
+                <Download className="h-4 w-4 text-slate-600" /> ส่งออก Excel (CSV)
+              </button>
+            </div>
+          </div>
+
+          {/* แถวที่ 2: เมนูกรองข้อมูล IPD (หอผู้ป่วย, สิทธิ, แพทย์) */}
+          {mainTab === 'ipd' && (
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-0.5">
+              <div className="flex flex-wrap items-center gap-2.5 text-xs">
+                <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                  <Filter className="h-3.5 w-3.5 text-emerald-600" /> ตัวกรองข้อมูล:
+                </span>
+
+                {/* Ward Filter */}
                 <div className="relative inline-flex items-center">
-                  <select
-                    value={selectedMonth}
-                    onChange={e => handleSelectMonth(Number(e.target.value))}
-                    className="appearance-none border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-50 text-emerald-900 font-semibold rounded-lg pl-3 pr-8 py-1.5 text-xs shadow-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-none cursor-pointer transition"
+                  <select 
+                    value={ipdWard} 
+                    onChange={e => setIpdWard(e.target.value)}
+                    className="appearance-none border border-slate-200 hover:border-emerald-400 bg-white text-slate-700 font-medium rounded-lg pl-3 pr-7 py-1.5 shadow-2xs transition focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer max-w-[170px] truncate"
                   >
-                    {thaiMonths.map(m => (
-                      <option key={m.value} value={m.value} className="bg-white text-slate-800 py-1">
-                        เดือน {m.name} (ปี {currentCalYear + 543})
+                    <option value="all">🏥 ทุกหอผู้ป่วย</option>
+                    {ipdWards.map(w => <option key={w} value={w}>{w}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                </div>
+
+                {/* Pttype Filter */}
+                <div className="relative inline-flex items-center">
+                  <select 
+                    value={ipdPttype} 
+                    onChange={e => setIpdPttype(e.target.value)}
+                    className="appearance-none border border-slate-200 hover:border-emerald-400 bg-white text-slate-700 font-medium rounded-lg pl-3 pr-7 py-1.5 shadow-2xs transition focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer max-w-[210px] truncate"
+                  >
+                    <option value="all">💳 ทุกสิทธิการรักษา</option>
+                    {ipdPttypes.map(p => (
+                      <option key={p.code} value={p.code}>
+                        {p.code} : {p.name}
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2.5 h-3.5 w-3.5 text-emerald-700 pointer-events-none opacity-80" />
+                  <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                 </div>
-                <span className="text-xs text-slate-400 font-mono">
-                  ({ds1} ถึง {ds2})
-                </span>
-                <button 
-                  onClick={() => fetchWithDates(ds1, ds2)} 
-                  disabled={mainTab === 'ipd' ? ipdLoading : opdLoading}
-                  className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-medium px-3.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
-                >
-                  <Filter className="h-3.5 w-3.5" /> ดึงข้อมูล
-                </button>
-              </div>
-            )}
 
-            {/* Mode 3: Fiscal Year Range (1 ต.ค. - 30 ก.ย.) */}
-            {dateMode === 'year' && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-slate-500">เลือกปีงบประมาณ:</span>
+                {/* Doctor Admit Filter */}
                 <div className="relative inline-flex items-center">
-                  <select
-                    value={selectedYear}
-                    onChange={e => handleSelectFiscalYear(Number(e.target.value))}
-                    className="appearance-none border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-50 text-emerald-900 font-semibold rounded-lg pl-3 pr-8 py-1.5 text-xs shadow-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-none cursor-pointer transition"
+                  <select 
+                    value={ipdDoctor} 
+                    onChange={e => setIpdDoctor(e.target.value)}
+                    className="appearance-none border border-slate-200 hover:border-emerald-400 bg-white text-slate-700 font-medium rounded-lg pl-3 pr-7 py-1.5 shadow-2xs transition focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer max-w-[180px] truncate"
                   >
-                    {availableYears.map(yr => (
-                      <option key={yr} value={yr} className="bg-white text-slate-800 py-1">
-                        ปีงบประมาณ {yr + 543} (1 ต.ค. {yr - 1 + 543} - 30 ก.ย. {yr + 543})
-                      </option>
+                    <option value="all">👨‍⚕️ แพทย์ Admit ทั้งหมด</option>
+                    {ipdDoctors.map(doc => (
+                      <option key={doc} value={doc}>{doc}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2.5 h-3.5 w-3.5 text-emerald-700 pointer-events-none opacity-80" />
+                  <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                 </div>
-                <span className="text-xs text-slate-400 font-mono">
-                  ({ds1} ถึง {ds2})
-                </span>
-                <button 
-                  onClick={() => fetchWithDates(ds1, ds2)} 
-                  disabled={mainTab === 'ipd' ? ipdLoading : opdLoading}
-                  className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-medium px-3.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
-                >
-                  <Filter className="h-3.5 w-3.5" /> ดึงข้อมูล
-                </button>
-              </div>
-            )}
-          </div>
 
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={mainTab === 'ipd' ? exportIPDCSV : exportOPDCSV}
-              className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-1.5 rounded-lg shadow-sm transition cursor-pointer"
-            >
-              <Download className="h-4 w-4" /> ส่งออก Excel (CSV)
-            </button>
-          </div>
+                {/* Doctor D/C Filter */}
+                <div className="relative inline-flex items-center">
+                  <select 
+                    value={ipdDoctorDc} 
+                    onChange={e => setIpdDoctorDc(e.target.value)}
+                    className="appearance-none border border-slate-200 hover:border-emerald-400 bg-white text-slate-700 font-medium rounded-lg pl-3 pr-7 py-1.5 shadow-2xs transition focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer max-w-[180px] truncate"
+                  >
+                    <option value="all">👨‍⚕️ แพทย์ D/C ทั้งหมด</option>
+                    {ipdDoctorsDc.map(doc => (
+                      <option key={doc} value={doc}>{doc}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                </div>
+
+                {/* Reset Filter Button */}
+                {(ipdDelayGroup !== 'all' || ipdWard !== 'all' || ipdPttype !== 'all' || ipdDoctor !== 'all' || ipdDoctorDc !== 'all' || ipdSearch) && (
+                  <button 
+                    type="button"
+                    onClick={() => { setIpdDelayGroup('all'); setIpdWard('all'); setIpdPttype('all'); setIpdDoctor('all'); setIpdDoctorDc('all'); setIpdSearch(''); }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100/80 active:bg-rose-200/70 border border-rose-200 shadow-2xs transition cursor-pointer"
+                    title="ล้างค่าตัวกรองทั้งหมด"
+                  >
+                    <RotateCcw className="h-3 w-3 animate-none hover:-rotate-45 transition-transform" />
+                    <span>ล้างตัวกรอง</span>
+                  </button>
+                )}
+              </div>
+
+              {/* แสดงสถานะจำนวนผลลัพธ์ที่ตรงเงื่อนไข */}
+              <div className="text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/80">
+                แสดงผล <b className="text-emerald-700 font-mono">{filteredIPD.length.toLocaleString()}</b> / {ipdData.length.toLocaleString()} ราย
+              </div>
+            </div>
+          )}
         </section>
 
         {/* ======================= 2.1.2.1 CONTENT (IPD) ======================= */}
@@ -707,16 +817,29 @@ export default function AppBrowserTabs() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <button 
-                onClick={() => setIpdDelayGroup(ipdDelayGroup === 'gt15' ? 'all' : 'gt15')}
+                onClick={() => setIpdDelayGroup(ipdDelayGroup === 'null' ? 'all' : 'null')}
                 className={`p-3 rounded-lg border text-left transition flex items-center justify-between ${
-                  ipdDelayGroup === 'gt15' ? 'ring-2 ring-rose-500 bg-rose-50 border-rose-300' : 'bg-rose-50/50 border-rose-200 hover:bg-rose-100/60'
+                  ipdDelayGroup === 'null' ? 'ring-2 ring-red-600 bg-red-100/90 border-red-400' : 'bg-red-50/80 border-red-300 hover:bg-red-100/70'
                 }`}
               >
                 <div>
-                  <div className="text-xs font-semibold text-rose-700 flex items-center gap-1"><AlertCircle className="h-3.5 w-3.5" /> 1. เกิน 15 วัน</div>
-                  <div className="text-xl font-bold text-rose-800 mt-0.5">{ipdMetrics.gt15}</div>
+                  <div className="text-xs font-semibold text-red-800 flex items-center gap-1"><AlertCircle className="h-3.5 w-3.5 text-red-600" /> 1. ยังไม่สรุป</div>
+                  <div className="text-xl font-bold text-red-900 mt-0.5">{ipdMetrics.notFinal}</div>
                 </div>
-                <span className="text-[11px] text-rose-600 font-medium bg-white/80 px-2 py-0.5 rounded">วิกฤต</span>
+                <span className="text-[11px] text-red-700 font-bold bg-white/90 px-2 py-0.5 rounded shadow-2xs">ร้ายแรง</span>
+              </button>
+
+              <button 
+                onClick={() => setIpdDelayGroup(ipdDelayGroup === 'gt15' ? 'all' : 'gt15')}
+                className={`p-3 rounded-lg border text-left transition flex items-center justify-between ${
+                  ipdDelayGroup === 'gt15' ? 'ring-2 ring-orange-500 bg-orange-50/90 border-orange-300' : 'bg-orange-50/40 border-orange-200 hover:bg-orange-100/50'
+                }`}
+              >
+                <div>
+                  <div className="text-xs font-semibold text-orange-700 flex items-center gap-1"><AlertCircle className="h-3.5 w-3.5 text-orange-500" /> 2. นานเกิน 15 วัน</div>
+                  <div className="text-xl font-bold text-orange-800 mt-0.5">{ipdMetrics.gt15}</div>
+                </div>
+                <span className="text-[11px] text-orange-600 font-medium bg-white/80 px-2 py-0.5 rounded">วิกฤต</span>
               </button>
 
               <button 
@@ -726,7 +849,7 @@ export default function AppBrowserTabs() {
                 }`}
               >
                 <div>
-                  <div className="text-xs font-semibold text-amber-700 flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> 2. 8 - 15 วัน</div>
+                  <div className="text-xs font-semibold text-amber-700 flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> 3. นานเกิน 8 - 15 วัน</div>
                   <div className="text-xl font-bold text-amber-800 mt-0.5">{ipdMetrics.b8to15}</div>
                 </div>
                 <span className="text-[11px] text-amber-600 font-medium bg-white/80 px-2 py-0.5 rounded">เตือน</span>
@@ -739,23 +862,10 @@ export default function AppBrowserTabs() {
                 }`}
               >
                 <div>
-                  <div className="text-xs font-semibold text-emerald-700 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> 3. น้อยกว่า 8 วัน</div>
+                  <div className="text-xs font-semibold text-emerald-700 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> 4. น้อยกว่า 8 วัน</div>
                   <div className="text-xl font-bold text-emerald-800 mt-0.5">{ipdMetrics.lt8}</div>
                 </div>
                 <span className="text-[11px] text-emerald-600 font-medium bg-white/80 px-2 py-0.5 rounded">ปกติ</span>
-              </button>
-
-              <button 
-                onClick={() => setIpdDelayGroup(ipdDelayGroup === 'null' ? 'all' : 'null')}
-                className={`p-3 rounded-lg border text-left transition flex items-center justify-between ${
-                  ipdDelayGroup === 'null' ? 'ring-2 ring-slate-500 bg-slate-100 border-slate-300' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                <div>
-                  <div className="text-xs font-semibold text-slate-700 flex items-center gap-1"><HelpCircle className="h-3.5 w-3.5" /> 4. ยังไม่สรุป</div>
-                  <div className="text-xl font-bold text-slate-800 mt-0.5">{ipdMetrics.notFinal}</div>
-                </div>
-                <span className="text-[11px] text-slate-600 font-medium bg-white/80 px-2 py-0.5 rounded">รอลงโรค</span>
               </button>
             </div>
           </section>
@@ -1027,8 +1137,8 @@ export default function AppBrowserTabs() {
 
           {/* SubTab: IPD Table */}
           <section className={`bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden ${ipdSubTab !== 'list' && 'hidden'}`}>
-            <div className="p-4 border-b border-emerald-100 bg-emerald-50/40 flex flex-wrap items-center justify-between gap-3">
-              <div className="relative w-72">
+            <div className="p-3.5 border-b border-emerald-100 bg-emerald-50/40 flex flex-wrap items-center justify-between gap-3">
+              <div className="relative w-80">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                 <input
                   type="text"
@@ -1039,80 +1149,17 @@ export default function AppBrowserTabs() {
                 />
               </div>
 
-              <div className="flex flex-wrap items-center gap-2.5 text-xs">
-                {/* Ward Filter */}
-                <div className="relative inline-flex items-center">
-                  <select 
-                    value={ipdWard} 
-                    onChange={e => setIpdWard(e.target.value)}
-                    className="appearance-none border border-slate-200 hover:border-emerald-400 bg-white text-slate-700 font-medium rounded-lg pl-3 pr-7 py-1.5 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer"
-                  >
-                    <option value="all">ทุกหอผู้ป่วย</option>
-                    {ipdWards.map(w => <option key={w} value={w}>{w}</option>)}
-                  </select>
-                  <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
-                </div>
-
-                {/* Pttype Filter */}
-                <div className="relative inline-flex items-center">
-                  <select 
-                    value={ipdPttype} 
-                    onChange={e => setIpdPttype(e.target.value)}
-                    className="appearance-none border border-slate-200 hover:border-emerald-400 bg-white text-slate-700 font-medium rounded-lg pl-3 pr-7 py-1.5 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer max-w-[220px] truncate"
-                  >
-                    <option value="all">ทุกสิทธิการรักษา</option>
-                    {ipdPttypes.map(p => (
-                      <option key={p.code} value={p.code}>
-                        {p.code} : {p.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
-                </div>
-
-                {/* Doctor Admit Filter */}
-                <div className="relative inline-flex items-center">
-                  <select 
-                    value={ipdDoctor} 
-                    onChange={e => setIpdDoctor(e.target.value)}
-                    className="appearance-none border border-slate-200 hover:border-emerald-400 bg-white text-slate-700 font-medium rounded-lg pl-3 pr-7 py-1.5 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer max-w-[190px] truncate"
-                  >
-                    <option value="all">แพทย์ Admit ทั้งหมด</option>
-                    {ipdDoctors.map(doc => (
-                      <option key={doc} value={doc}>{doc}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
-                </div>
-
-                {/* Doctor D/C Filter */}
-                <div className="relative inline-flex items-center">
-                  <select 
-                    value={ipdDoctorDc} 
-                    onChange={e => setIpdDoctorDc(e.target.value)}
-                    className="appearance-none border border-slate-200 hover:border-emerald-400 bg-white text-slate-700 font-medium rounded-lg pl-3 pr-7 py-1.5 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer max-w-[190px] truncate"
-                  >
-                    <option value="all">แพทย์ D/C ทั้งหมด</option>
-                    {ipdDoctorsDc.map(doc => (
-                      <option key={doc} value={doc}>{doc}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
-                </div>
-
-                {/* Reset Filter Button */}
-                {(ipdDelayGroup !== 'all' || ipdWard !== 'all' || ipdPttype !== 'all' || ipdDoctor !== 'all' || ipdDoctorDc !== 'all' || ipdSearch) && (
-                  <button 
-                    type="button"
-                    onClick={() => { setIpdDelayGroup('all'); setIpdWard('all'); setIpdPttype('all'); setIpdDoctor('all'); setIpdDoctorDc('all'); setIpdSearch(''); }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100/80 active:bg-rose-200/70 border border-rose-200/80 shadow-xs transition-all duration-150 cursor-pointer"
-                    title="ล้างค่าตัวกรองทั้งหมด"
-                  >
-                    <RotateCcw className="h-3 w-3 animate-none hover:-rotate-45 transition-transform" />
-                    <span>ล้างตัวกรอง</span>
-                  </button>
-                )}
-              </div>
+              {(ipdSearch || ipdDelayGroup !== 'all') && (
+                <button 
+                  type="button"
+                  onClick={() => { setIpdSearch(''); setIpdDelayGroup('all'); }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100/80 border border-rose-200 shadow-2xs transition cursor-pointer"
+                  title="ล้างคำค้นหาและตัวกรองสถานะสรุปชาร์ต"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  <span>ล้างการค้นหา</span>
+                </button>
+              )}
             </div>
 
             <div className="overflow-x-auto max-h-[560px]">

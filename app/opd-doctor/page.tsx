@@ -144,8 +144,46 @@ export default function OpdDoctorReportPage() {
     fetchData(ds1, ds2, selectedPttypes);
   }, []);
 
+  // Grouped options where 03, 04, 05 are merged into a single option
+  const displayPttypeOptions = useMemo(() => {
+    const list: PttypeOption[] = [];
+    let addedCR = false;
+
+    allPttypes.forEach(p => {
+      if (p.code === '03' || p.code === '04' || p.code === '05') {
+        if (!addedCR) {
+          list.push({
+            code: '03,04,05',
+            name: 'บริการเฉพาะ(CR)'
+          });
+          addedCR = true;
+        }
+      } else {
+        list.push(p);
+      }
+    });
+
+    return list;
+  }, [allPttypes]);
+
   // Multi-choice toggle helper
   const handleTogglePttype = (code: string) => {
+    if (code === '03,04,05') {
+      setSelectedPttypes(prev => {
+        const isAllSelected = ['03', '04', '05'].every(c => prev.includes(c));
+        if (isAllSelected) {
+          return prev.filter(c => c !== '03' && c !== '04' && c !== '05');
+        } else {
+          const set = new Set(prev);
+          set.add('03');
+          set.add('04');
+          set.add('05');
+          return Array.from(set);
+        }
+      });
+      return;
+    }
+
     setSelectedPttypes(prev => {
       if (prev.includes(code)) {
         return prev.filter(c => c !== code);
@@ -156,7 +194,7 @@ export default function OpdDoctorReportPage() {
   };
 
   const handleSelectAllPttypes = () => {
-    // ติ๊กเลือกทุกสิทธิ์ทั้งหมด 37 สิทธิ์
+    // ติ๊กเลือกทุกสิทธิ์ทั้งหมด
     setSelectedPttypes(allPttypes.map(p => p.code));
   };
 
@@ -165,14 +203,27 @@ export default function OpdDoctorReportPage() {
     setSelectedPttypes([]);
   };
 
-  // Filtered pttypes in multi-choice dropdown (37 สิทธิ HOSxP e-Claim)
+  // Filtered pttypes in multi-choice dropdown (รวม 03,04,05 เป็นรายการเดียว)
   const filteredPttypeOptions = useMemo(() => {
-    if (!pttypeSearch.trim()) return allPttypes;
+    if (!pttypeSearch.trim()) return displayPttypeOptions;
     const q = pttypeSearch.toLowerCase();
-    return allPttypes.filter(
+    return displayPttypeOptions.filter(
       p => p.code.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)
     );
-  }, [allPttypes, pttypeSearch]);
+  }, [displayPttypeOptions, pttypeSearch]);
+
+  // Check selected count for UI display (นับ 03,04,05 เป็น 1 สิทธิ์)
+  const selectedDisplayCount = useMemo(() => {
+    let count = 0;
+    const hasCR = ['03', '04', '05'].some(c => selectedPttypes.includes(c));
+    if (hasCR) count += 1;
+    selectedPttypes.forEach(c => {
+      if (c !== '03' && c !== '04' && c !== '05') {
+        count += 1;
+      }
+    });
+    return count;
+  }, [selectedPttypes]);
 
   // Filtered doctors by search
   const filteredDoctors = useMemo(() => {
@@ -271,275 +322,295 @@ export default function OpdDoctorReportPage() {
           </div>
         </div>
 
-        {/* Global Control Bar (Date range & Multi-select Pttype Filter) */}
-        <section className="bg-white rounded-xl shadow-sm border border-emerald-100 p-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Mode Selector Buttons: วัน (custom) -> เดือน (month) -> ปีงบประมาณ (year) ตาม 2.1.2.1 */}
-            <div className="bg-emerald-50/70 p-1 rounded-lg flex items-center border border-emerald-100">
-              <button
-                type="button"
-                onClick={() => setDateMode('custom')}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition cursor-pointer ${
-                  dateMode === 'custom' 
-                    ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
-                    : 'text-emerald-700 hover:text-emerald-950'
-                }`}
-              >
-                📅 กำหนดเอง (วันถึงวัน)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDateMode('month');
-                  handleSelectMonth(selectedMonth);
-                }}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition cursor-pointer ${
-                  dateMode === 'month' 
-                    ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
-                    : 'text-emerald-700 hover:text-emerald-950'
-                }`}
-              >
-                🗓️ รายเดือน ({currentCalYear + 543})
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDateMode('year');
-                  handleSelectFiscalYear(selectedYear);
-                }}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition cursor-pointer ${
-                  dateMode === 'year' 
-                    ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
-                    : 'text-emerald-700 hover:text-emerald-950'
-                }`}
-              >
-                📆 รายปีงบประมาณ (1 ต.ค. - 30 ก.ย.)
-              </button>
-            </div>
-
-            {/* Mode 1: Custom Date Range (วันถึงวัน) */}
-            {dateMode === 'custom' && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-slate-500">
-                  ตรวจวันที่:
-                </span>
-                <input 
-                  type="date" 
-                  value={ds1} 
-                  onChange={e => setDs1(e.target.value)} 
-                  className="border border-emerald-200 rounded-lg px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
-                />
-                <span className="text-slate-400 text-xs">ถึง</span>
-                <input 
-                  type="date" 
-                  value={ds2} 
-                  onChange={e => setDs2(e.target.value)} 
-                  className="border border-emerald-200 rounded-lg px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
-                />
-                <button 
-                  onClick={() => fetchData(ds1, ds2, selectedPttypes)} 
-                  disabled={loading}
-                  className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-medium px-3.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+        {/* Global Control Bar (Date range, Filters & Actions) */}
+        <section className="bg-white rounded-xl shadow-sm border border-emerald-100 p-4 space-y-3.5">
+          {/* แถวที่ 1: การเลือกช่วงเวลา & ปุ่มดึงข้อมูล & ส่งออกข้อมูล */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Mode Selector Buttons */}
+              <div className="bg-emerald-50/70 p-1 rounded-lg flex items-center border border-emerald-100 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setDateMode('custom')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition cursor-pointer ${
+                    dateMode === 'custom' 
+                      ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
+                      : 'text-emerald-700 hover:text-emerald-950'
+                  }`}
                 >
-                  <Filter className="h-3.5 w-3.5" /> ดึงข้อมูล
+                  📅 กำหนดเอง (วันถึงวัน)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDateMode('month');
+                    handleSelectMonth(selectedMonth);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition cursor-pointer ${
+                    dateMode === 'month' 
+                      ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
+                      : 'text-emerald-700 hover:text-emerald-950'
+                  }`}
+                >
+                  🗓️ รายเดือน ({currentCalYear + 543})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDateMode('year');
+                    handleSelectFiscalYear(selectedYear);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition cursor-pointer ${
+                    dateMode === 'year' 
+                      ? 'bg-white text-emerald-800 shadow-sm border border-emerald-200' 
+                      : 'text-emerald-700 hover:text-emerald-950'
+                  }`}
+                >
+                  📆 รายปีงบประมาณ (1 ต.ค. - 30 ก.ย.)
                 </button>
               </div>
-            )}
 
-            {/* Mode 2: Month Range */}
-            {dateMode === 'month' && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-slate-500">เลือกเดือน:</span>
-                <div className="relative inline-flex items-center">
-                  <select
-                    value={selectedMonth}
-                    onChange={e => handleSelectMonth(Number(e.target.value))}
-                    className="appearance-none border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-50 text-emerald-900 font-semibold rounded-lg pl-3 pr-8 py-1.5 text-xs shadow-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-none cursor-pointer transition"
-                  >
-                    {THAI_MONTH_NAMES.map((name, idx) => (
-                      <option key={idx + 1} value={idx + 1} className="bg-white text-slate-800 py-1">
-                        เดือน {name} (ปี {currentCalYear + 543})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2.5 h-3.5 w-3.5 text-emerald-700 pointer-events-none opacity-80" />
+              {/* Mode 1: Custom Date Range (วันถึงวัน) */}
+              {dateMode === 'custom' && (
+                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200/80">
+                  <span className="text-xs font-medium text-slate-500 pl-1.5">
+                    ตรวจวันที่:
+                  </span>
+                  <input 
+                    type="date" 
+                    value={ds1} 
+                    onChange={e => setDs1(e.target.value)} 
+                    className="border border-slate-200 rounded-md px-2 py-1 text-xs bg-white text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  />
+                  <span className="text-slate-400 text-xs">ถึง</span>
+                  <input 
+                    type="date" 
+                    value={ds2} 
+                    onChange={e => setDs2(e.target.value)} 
+                    className="border border-slate-200 rounded-md px-2 py-1 text-xs bg-white text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  />
                 </div>
-                <span className="text-xs text-slate-400 font-mono">
-                  ({ds1} ถึง {ds2})
-                </span>
-                <button 
-                  onClick={() => fetchData(ds1, ds2, selectedPttypes)} 
-                  disabled={loading}
-                  className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-medium px-3.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
-                >
-                  <Filter className="h-3.5 w-3.5" /> ดึงข้อมูล
-                </button>
-              </div>
-            )}
+              )}
 
-            {/* Mode 3: Fiscal Year Range (1 ต.ค. - 30 ก.ย.) */}
-            {dateMode === 'year' && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-slate-500">เลือกปีงบประมาณ:</span>
-                <div className="relative inline-flex items-center">
-                  <select
-                    value={selectedYear}
-                    onChange={e => handleSelectFiscalYear(Number(e.target.value))}
-                    className="appearance-none border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-50 text-emerald-900 font-semibold rounded-lg pl-3 pr-8 py-1.5 text-xs shadow-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-none cursor-pointer transition"
-                  >
-                    {availableYears.map(yr => (
-                      <option key={yr} value={yr} className="bg-white text-slate-800 py-1">
-                        ปีงบประมาณ {yr + 543} (1 ต.ค. {yr - 1 + 543} - 30 ก.ย. {yr + 543})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2.5 h-3.5 w-3.5 text-emerald-700 pointer-events-none opacity-80" />
-                </div>
-                <span className="text-xs text-slate-400 font-mono">
-                  ({ds1} ถึง {ds2})
-                </span>
-                <button 
-                  onClick={() => fetchData(ds1, ds2, selectedPttypes)} 
-                  disabled={loading}
-                  className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-medium px-3.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
-                >
-                  <Filter className="h-3.5 w-3.5" /> ดึงข้อมูล
-                </button>
-              </div>
-            )}
-
-            {/* Multi-choice Pttype Filter Dropdown */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setPttypeDropdownOpen(!pttypeDropdownOpen)}
-                className="flex items-center gap-2 bg-white border border-emerald-300 hover:border-emerald-500 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 shadow-xs cursor-pointer transition"
-              >
-                <Filter className="h-3.5 w-3.5 text-emerald-600" />
-                <span>
-                  {selectedPttypes.length === 0 
-                    ? 'ทุกสิทธิการรักษา (ทั้งหมด)' 
-                    : `เลือกไว้ ${selectedPttypes.length} สิทธิ`}
-                </span>
-                <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${pttypeDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {/* Dropdown Menu Modal */}
-              {pttypeDropdownOpen && (
-                <div className="absolute left-0 top-full mt-1.5 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-emerald-200 z-50 p-3 space-y-2.5">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <span className="font-bold text-xs text-emerald-950 flex items-center gap-1.5">
-                      <Filter className="h-3.5 w-3.5 text-emerald-600" /> เลือกสิทธิการรักษา (Multi-choice)
-                    </span>
-                    <button 
-                      onClick={() => setPttypeDropdownOpen(false)}
-                      className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
+              {/* Mode 2: Month Range */}
+              {dateMode === 'month' && (
+                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200/80">
+                  <span className="text-xs font-medium text-slate-500 pl-1.5">เดือน:</span>
+                  <div className="relative inline-flex items-center">
+                    <select
+                      value={selectedMonth}
+                      onChange={e => handleSelectMonth(Number(e.target.value))}
+                      className="appearance-none border border-slate-200 bg-white hover:border-emerald-400 text-slate-800 font-semibold rounded-md pl-2.5 pr-7 py-1 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer"
                     >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  {/* Search inside pttype options */}
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="ค้นหารหัส หรือชื่อสิทธิ..."
-                      value={pttypeSearch}
-                      onChange={e => setPttypeSearch(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1 text-xs border border-emerald-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                    />
-                  </div>
-
-                  {/* Select All / Clear Buttons */}
-                  <div className="flex items-center justify-between text-xs pt-1 pb-1 px-1 bg-emerald-50/60 rounded-lg border border-emerald-100">
-                    <button
-                      type="button"
-                      onClick={handleSelectAllPttypes}
-                      className="inline-flex items-center gap-1 font-bold text-emerald-800 hover:text-emerald-950 px-2 py-1 rounded bg-white hover:bg-emerald-100 border border-emerald-300 shadow-xs cursor-pointer transition text-xs"
-                    >
-                      <Check className="h-3.5 w-3.5 text-emerald-700" />
-                      เลือกทุกสิทธิ ({allPttypes.length})
-                    </button>
-                    {selectedPttypes.length > 0 ? (
-                      <button
-                        type="button"
-                        onClick={handleClearPttypes}
-                        className="text-rose-600 hover:text-rose-800 font-semibold px-2 py-1 rounded hover:bg-rose-50 cursor-pointer transition text-xs"
-                      >
-                        ล้างการเลือก ({selectedPttypes.length})
-                      </button>
-                    ) : (
-                      <span className="text-[11px] text-slate-400">ยังไม่ได้เลือก</span>
-                    )}
-                  </div>
-
-                  {/* Options List */}
-                  <div className="max-h-56 overflow-y-auto space-y-1 pr-1 border border-slate-100 rounded-lg p-1.5 bg-slate-50/50">
-                    {filteredPttypeOptions.length === 0 ? (
-                      <p className="text-center py-4 text-xs text-slate-400">ไม่พบสิทธิที่ค้นหา</p>
-                    ) : (
-                      filteredPttypeOptions.map(p => {
-                        const isChecked = selectedPttypes.includes(p.code);
-                        return (
-                          <label
-                            key={p.code}
-                            className="flex items-start gap-2.5 p-1.5 rounded-md hover:bg-emerald-50/80 cursor-pointer text-xs transition"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => handleTogglePttype(p.code)}
-                              className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-slate-800 font-medium truncate">
-                                <span className="font-mono text-emerald-800 font-bold mr-1">{p.code}:</span>
-                                {p.name}
-                              </p>
-                            </div>
-                          </label>
-                        );
-                      })
-                    )}
-                  </div>
-
-                  {/* Apply Button */}
-                  <div className="pt-1 flex items-center justify-end gap-2 border-t border-slate-100">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPttypeDropdownOpen(false);
-                        fetchData(ds1, ds2, selectedPttypes);
-                      }}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-1.5 rounded-lg text-xs transition shadow-sm cursor-pointer text-center"
-                    >
-                      นำตัวกรองไปใช้ ({selectedPttypes.length === 0 ? 'ทุกสิทธิ' : `${selectedPttypes.length} สิทธิที่เลือก`})
-                    </button>
+                      {THAI_MONTH_NAMES.map((name, idx) => (
+                        <option key={idx + 1} value={idx + 1}>
+                          เดือน {name} (ปี {currentCalYear + 543})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                   </div>
                 </div>
               )}
+
+              {/* Mode 3: Fiscal Year Range (1 ต.ค. - 30 ก.ย.) */}
+              {dateMode === 'year' && (
+                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200/80">
+                  <span className="text-xs font-medium text-slate-500 pl-1.5">ปีงบประมาณ:</span>
+                  <div className="relative inline-flex items-center">
+                    <select
+                      value={selectedYear}
+                      onChange={e => handleSelectFiscalYear(Number(e.target.value))}
+                      className="appearance-none border border-slate-200 bg-white hover:border-emerald-400 text-slate-800 font-semibold rounded-md pl-2.5 pr-7 py-1 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer"
+                    >
+                      {availableYears.map(yr => (
+                        <option key={yr} value={yr}>
+                          ปีงบประมาณ {yr + 543}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+              )}
+
+              {/* ปุ่มดึงข้อมูล */}
+              <button 
+                onClick={() => fetchData(ds1, ds2, selectedPttypes)} 
+                disabled={loading}
+                className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              >
+                <Filter className="h-3.5 w-3.5" /> ดึงข้อมูล
+              </button>
+            </div>
+
+            {/* ปุ่มส่งออก Excel */}
+            <div>
+              <button 
+                onClick={exportCSV}
+                disabled={filteredDoctors.length === 0}
+                className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 hover:text-slate-900 text-xs font-semibold px-3.5 py-2 rounded-lg border border-slate-300 shadow-2xs transition cursor-pointer disabled:opacity-50"
+              >
+                <Download className="h-4 w-4 text-slate-600" /> ส่งออก Excel (CSV)
+              </button>
             </div>
           </div>
 
-          {/* Quick Doctor Search in Table */}
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="ค้นหาชื่อแพทย์ หรือรหัส..."
-              value={searchDoctor}
-              onChange={e => setSearchDoctor(e.target.value)}
-              className="pl-8 pr-8 py-1.5 w-full border border-emerald-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
-            />
-            {searchDoctor && (
-              <button 
-                onClick={() => setSearchDoctor('')}
-                className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 cursor-pointer"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
+          {/* แถวที่ 2: เมนูกรองสิทธิการรักษา & ค้นหาชื่อแพทย์ */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-0.5">
+            <div className="flex flex-wrap items-center gap-2.5 text-xs">
+              <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                <Filter className="h-3.5 w-3.5 text-emerald-600" /> ตัวกรองสิทธิ:
+              </span>
+
+              {/* Multi-choice Pttype Filter Dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setPttypeDropdownOpen(!pttypeDropdownOpen)}
+                  className="flex items-center gap-2 bg-white border border-slate-200 hover:border-emerald-400 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 shadow-2xs cursor-pointer transition"
+                >
+                  <CreditCard className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>
+                    {selectedPttypes.length === 0 
+                      ? 'ทุกสิทธิการรักษา (ทั้งหมด)' 
+                      : `เลือกไว้ ${selectedDisplayCount} สิทธิ`}
+                  </span>
+                  <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${pttypeDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Dropdown Menu Modal */}
+                {pttypeDropdownOpen && (
+                  <div className="absolute left-0 top-full mt-1.5 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-emerald-200 z-50 p-3 space-y-2.5">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <span className="font-bold text-xs text-emerald-950 flex items-center gap-1.5">
+                        <Filter className="h-3.5 w-3.5 text-emerald-600" /> เลือกสิทธิการรักษา (Multi-choice)
+                      </span>
+                      <button 
+                        onClick={() => setPttypeDropdownOpen(false)}
+                        className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    {/* Search inside pttype options */}
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="ค้นหารหัส หรือชื่อสิทธิ..."
+                        value={pttypeSearch}
+                        onChange={e => setPttypeSearch(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1 text-xs border border-emerald-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                      />
+                    </div>
+
+                    {/* Select All / Clear Buttons */}
+                    <div className="flex items-center justify-between text-xs pt-1 pb-1 px-1 bg-emerald-50/60 rounded-lg border border-emerald-100">
+                      <button
+                        type="button"
+                        onClick={handleSelectAllPttypes}
+                        className="inline-flex items-center gap-1 font-bold text-emerald-800 hover:text-emerald-950 px-2 py-1 rounded bg-white hover:bg-emerald-100 border border-emerald-300 shadow-xs cursor-pointer transition text-xs"
+                      >
+                        <Check className="h-3.5 w-3.5 text-emerald-700" />
+                        เลือกทุกสิทธิ ({displayPttypeOptions.length})
+                      </button>
+                      {selectedPttypes.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={handleClearPttypes}
+                          className="text-rose-600 hover:text-rose-800 font-semibold px-2 py-1 rounded hover:bg-rose-50 cursor-pointer transition text-xs"
+                        >
+                          ล้างการเลือก ({selectedDisplayCount})
+                        </button>
+                      ) : (
+                        <span className="text-[11px] text-slate-400">ยังไม่ได้เลือก</span>
+                      )}
+                    </div>
+
+                    {/* Options List */}
+                    <div className="max-h-56 overflow-y-auto space-y-1 pr-1 border border-slate-100 rounded-lg p-1.5 bg-slate-50/50">
+                      {filteredPttypeOptions.length === 0 ? (
+                        <p className="text-center py-4 text-xs text-slate-400">ไม่พบสิทธิที่ค้นหา</p>
+                      ) : (
+                        filteredPttypeOptions.map(p => {
+                          const isChecked = p.code === '03,04,05' 
+                            ? ['03', '04', '05'].some(c => selectedPttypes.includes(c))
+                            : selectedPttypes.includes(p.code);
+
+                          return (
+                            <label
+                              key={p.code}
+                              className="flex items-start gap-2.5 p-1.5 rounded-md hover:bg-emerald-50/80 cursor-pointer text-xs transition"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => handleTogglePttype(p.code)}
+                                className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-slate-800 font-medium truncate">
+                                  <span className="font-mono text-emerald-800 font-bold mr-1">{p.code}:</span>
+                                  {p.name}
+                                </p>
+                              </div>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    {/* Apply Button */}
+                    <div className="pt-1 flex items-center justify-end gap-2 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPttypeDropdownOpen(false);
+                          fetchData(ds1, ds2, selectedPttypes);
+                        }}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-1.5 rounded-lg text-xs transition shadow-sm cursor-pointer text-center"
+                      >
+                        นำตัวกรองไปใช้ ({selectedPttypes.length === 0 ? 'ทุกสิทธิ' : `${selectedDisplayCount} สิทธิที่เลือก`})
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {selectedPttypes.length > 0 && (
+                <button 
+                  type="button"
+                  onClick={() => { handleClearPttypes(); fetchData(ds1, ds2, []); }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100/80 active:bg-rose-200/70 border border-rose-200 shadow-2xs transition cursor-pointer"
+                  title="ล้างตัวกรองสิทธิ"
+                >
+                  <RotateCcw className="h-3 w-3 animate-none hover:-rotate-45 transition-transform" />
+                  <span>ล้างสิทธิที่เลือก ({selectedDisplayCount})</span>
+                </button>
+              )}
+            </div>
+
+            {/* Quick Doctor Search in Table */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="ค้นหาชื่อแพทย์ หรือรหัส..."
+                value={searchDoctor}
+                onChange={e => setSearchDoctor(e.target.value)}
+                className="pl-8 pr-8 py-1.5 w-full border border-slate-200 hover:border-emerald-400 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition shadow-2xs bg-white"
+              />
+              {searchDoctor && (
+                <button 
+                  onClick={() => setSearchDoctor('')}
+                  className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         </section>
 
@@ -623,7 +694,7 @@ export default function OpdDoctorReportPage() {
                   {/* Mode: Month or Custom -> Financial Breakdown Columns */}
                   {dateMode !== 'year' && (
                     <>
-                      <th className="p-3 text-right text-teal-800 min-w-[110px]">สิทธิเบิก (UC)</th>
+                      <th className="p-3 text-right text-teal-800 min-w-[110px]">สิทธิเบิก</th>
                       <th className="p-3 text-right text-indigo-800 min-w-[110px]">ชำระเอง</th>
                       <th className="p-3 text-right text-rose-800 min-w-[110px]">ลูกหนี้คงค้าง</th>
                     </>
