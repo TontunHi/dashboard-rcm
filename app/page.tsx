@@ -37,8 +37,9 @@ export default function PortalPage() {
         {[
           { id: 'hero', label: 'หน้าหลัก' },
           { id: 'problem-solution', label: 'วิสัยทัศน์ & ที่มา' },
-          { id: 'module-ipd', label: '2.1.2.1 IPD' },
+          { id: 'module-sss', label: '2.1.1.1 ทันตกรรมประกันสังคม' },
           { id: 'module-opd', label: '2.1.1.2 OPD' },
+          { id: 'module-ipd', label: '2.1.2.1 IPD' },
           { id: 'data-flow', label: 'สถาปัตยกรรมข้อมูล' },
           { id: 'start', label: 'เข้าใช้งาน' }
         ].map((sec) => (
@@ -77,7 +78,7 @@ export default function PortalPage() {
             </h1>
 
             <p className="text-base sm:text-xl text-slate-600 font-normal max-w-2xl mx-auto leading-relaxed">
-              ยกระดับการบริหารข้อมูลการเงินค่ารักษาพยาบาล สิทธิเบิกชดเชย e-Claim และประสิทธิภาพการเรียกเก็บหนี้ 
+              ยกระดับการบริหารข้อมูลการเงินค่ารักษาพยาบาล สิทธิเบิกชดเชย e-Claim และประสิทธิภาพการเรียกเก็บหนี้ โรงพยาบาลเถิน
               เชื่อมตรงฐานข้อมูล <strong className="text-emerald-800 font-bold">HOSxP MySQL</strong> แบบอัตโนมัติและแม่นยำ
             </p>
 
@@ -92,8 +93,8 @@ export default function PortalPage() {
                 <p className="text-xs font-semibold text-slate-600 mt-1">ดึงข้อมูลจริงจาก HOSxP</p>
               </div>
               <div className="col-span-2 sm:col-span-1 bg-white border border-emerald-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition text-center">
-                <p className="text-3xl sm:text-4xl font-extrabold text-teal-700 font-mono">2 Modules</p>
-                <p className="text-xs font-semibold text-slate-600 mt-1">รองรับทั้ง IPD & OPD</p>
+                <p className="text-3xl sm:text-4xl font-extrabold text-teal-700 font-mono">3 Modules</p>
+                <p className="text-xs font-semibold text-slate-600 mt-1">ทันตกรรม, OPD & IPD</p>
               </div>
             </div>
 
@@ -159,7 +160,87 @@ export default function PortalPage() {
           </div>
         </section>
 
-        {/* ================= SLIDE 3: MODULE 2.1.2.1 IPD ================= */}
+        {/* ================= SLIDE 3: MODULE 2.1.1.1 DENTAL ================= */}
+        <section id="module-sss" className="py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto border-b border-emerald-100">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            
+            {/* Left Description */}
+            <div className="lg:col-span-6 space-y-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold">
+                <Stethoscope className="w-4 h-4 text-emerald-600" />
+                <span>ระบบรายงานทันตกรรม</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+                2.1.1.1 รายงานการให้บริการทันตกรรม <br />
+                <span className="text-emerald-700">สิทธิ์ประกันสังคม โรงพยาบาลเถิน</span>
+              </h2>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                รายงานการให้บริการทันตกรรมสิทธิ์ประกันสังคม จำแนกตามทันตแพทย์ผู้ให้การตรวจรักษา สรุปยอดเงินบำรุง สิทธิเบิกชดเชย (UC) และลูกหนี้ค้างชำระ
+              </p>
+
+              <div className="space-y-3 text-xs sm:text-sm text-slate-700">
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span><strong>เจาะจงเฉพาะทันตกรรมประกันสังคม:</strong> กรองเฉพาะสิทธิ์ประกันสังคมและหัตถการทันตกรรมโดยเฉพาะ</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span><strong>แจกแจงรายทันตแพทย์:</strong> ทราบยอดจำนวนครั้งตรวจและรายได้แยกตามทันตแพทย์แต่ละท่าน</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span><strong>เลือกดูได้ 3 รูปแบบเวลา:</strong> กำหนดวันถึงวัน (Custom), รายเดือน (Monthly), หรือรายปีงบประมาณ</span>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Link
+                  href="/sss-dental"
+                  className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-lg shadow-emerald-600/20 transition hover:scale-105 cursor-pointer text-sm"
+                >
+                  <span>เปิดหน้ารายงาน 2.1.1.1 (ทันตกรรมประกันสังคม)</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Right Clean White-Emerald Mock Card Preview */}
+            <div className="lg:col-span-6">
+              <div className="bg-white rounded-2xl border border-emerald-200 p-5 shadow-xl space-y-4">
+                <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-emerald-500" />
+                    <span className="text-xs font-bold font-mono text-emerald-900 ml-1">รายงานทันตกรรมประกันสังคม (2.1.1.1)</span>
+                  </div>
+                  <span className="text-[11px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-semibold">Live Query</span>
+                </div>
+
+                {/* KPI Grid Mock */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-slate-50 p-3.5 rounded-xl border border-emerald-100">
+                    <p className="text-[11px] font-semibold text-slate-500">จำนวนครั้งรับบริการ</p>
+                    <p className="text-xl font-bold text-slate-800 font-mono mt-0.5">856 <span className="text-xs text-slate-500 font-normal">ครั้ง</span></p>
+                  </div>
+                  <div className="bg-slate-50 p-3.5 rounded-xl border border-emerald-100">
+                    <p className="text-[11px] font-semibold text-slate-500">ค่ารักษาพยาบาลรวม</p>
+                    <p className="text-xl font-bold text-emerald-700 font-mono mt-0.5">฿782,400</p>
+                  </div>
+                  <div className="bg-slate-50 p-3.5 rounded-xl border border-emerald-100">
+                    <p className="text-[11px] font-semibold text-slate-500">สิทธิเบิกจ่าย (UC)</p>
+                    <p className="text-xl font-bold text-teal-700 font-mono mt-0.5">฿765,000</p>
+                  </div>
+                  <div className="bg-slate-50 p-3.5 rounded-xl border border-emerald-100">
+                    <p className="text-[11px] font-semibold text-slate-500">ชำระเงินเอง</p>
+                    <p className="text-xl font-bold text-slate-700 font-mono mt-0.5">฿17,400</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ================= SLIDE 4: MODULE 2.1.2.1 IPD ================= */}
         <section id="module-ipd" className="py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto border-b border-emerald-100">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
@@ -170,11 +251,11 @@ export default function PortalPage() {
                 <span>ระบบรายงานผู้ป่วยใน</span>
               </div>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
-                2.1.2.1 รายงานสรุปการเงิน <br />
-                <span className="text-emerald-700">ผู้ป่วยใน (IPD)</span>
+                2.1.2.1 รายงานสรุปการให้บริการ <br />
+                <span className="text-emerald-700">ผู้ป่วยในโรงพยาบาลเถิน</span>
               </h2>
               <p className="text-sm text-slate-600 leading-relaxed">
-                รายงานจำแนกข้อมูลผู้ป่วยที่จำหน่ายออกจากโรงพยาบาล วิเคราะห์มิติความรุนแรงของโรคและการใช้ทรัพยากร ด้วยค่า AdjRW รวม และ Case Mix Index (CMI)
+                รายงานสรุปการให้บริการผู้ป่วยในโรงพยาบาลเถิน จำแนกข้อมูลผู้ป่วยที่จำหน่ายออกจากโรงพยาบาล วิเคราะห์มิติความรุนแรงของโรคและการใช้ทรัพยากร ด้วยค่า AdjRW รวม และ Case Mix Index (CMI)
               </p>
 
               <div className="space-y-3 text-xs sm:text-sm text-slate-700">
@@ -437,19 +518,27 @@ export default function PortalPage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <Link
-              href="/ipd"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-md hover:shadow-lg shadow-emerald-600/20 transition hover:scale-105"
+              href="/sss-dental"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-7 py-3.5 rounded-xl shadow-md hover:shadow-lg shadow-emerald-700/20 transition hover:scale-105"
             >
-              <BedDouble className="w-5 h-5" />
-              <span>เข้าสู่ 2.1.2.1 (IPD)</span>
+              <Stethoscope className="w-5 h-5" />
+              <span>เข้าสู่ 2.1.1.1 (ทันตกรรม)</span>
             </Link>
 
             <Link
               href="/opd-doctor"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-white hover:bg-teal-50 text-teal-800 border border-teal-300 font-bold px-8 py-3.5 rounded-xl shadow-sm hover:shadow-md transition hover:scale-105"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-white hover:bg-teal-50 text-teal-800 border border-teal-300 font-bold px-7 py-3.5 rounded-xl shadow-sm hover:shadow-md transition hover:scale-105"
             >
               <Stethoscope className="w-5 h-5 text-teal-600" />
               <span>เข้าสู่ 2.1.1.2 (OPD)</span>
+            </Link>
+
+            <Link
+              href="/ipd"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-7 py-3.5 rounded-xl shadow-md hover:shadow-lg shadow-emerald-600/20 transition hover:scale-105"
+            >
+              <BedDouble className="w-5 h-5" />
+              <span>เข้าสู่ 2.1.2.1 (IPD)</span>
             </Link>
           </div>
         </section>

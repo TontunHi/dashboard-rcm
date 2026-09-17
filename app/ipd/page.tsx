@@ -489,6 +489,19 @@ export default function AppBrowserTabs() {
 
       {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 space-y-5">
+        {/* Page Title Header */}
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl border border-emerald-100 shadow-sm">
+          <div>
+            <h1 className="text-lg sm:text-xl font-extrabold text-emerald-950 flex items-center gap-2">
+              <BedDouble className="h-6 w-6 text-emerald-600" />
+              รายงานสรุปการให้บริการผู้ป่วยในโรงพยาบาลเถิน
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              สรุปข้อมูลผู้ป่วยใน (IPD) จำแนกตามหอผู้ป่วยและแพทย์ผู้สั่งจำหน่าย • ตรวจสอบสถานะการสรุปชาร์ต วันนอน ค่ารักษาพยาบาล และ CMI
+            </p>
+          </div>
+        </div>
+
         {/* Global Control Bar (Date range, Filters & Actions) */}
         <section className="bg-white rounded-xl shadow-sm border border-emerald-100 p-4 space-y-3.5">
           {/* แถวที่ 1: การเลือกช่วงเวลา & ปุ่มดึงข้อมูล & ส่งออกข้อมูล */}
@@ -540,29 +553,31 @@ export default function AppBrowserTabs() {
               {/* Mode 1: Custom Date Range (วันถึงวัน) */}
               {dateMode === 'custom' && (
                 <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200/80">
-                  <span className="text-xs font-medium text-slate-500 pl-1.5">
-                    จำหน่าย:
-                  </span>
-                  <input 
-                    type="date" 
-                    value={ds1} 
-                    onChange={e => setDs1(e.target.value)} 
-                    className="border border-slate-200 rounded-md px-2 py-1 text-xs bg-white text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
-                  />
-                  <span className="text-slate-400 text-xs">ถึง</span>
-                  <input 
-                    type="date" 
-                    value={ds2} 
-                    onChange={e => setDs2(e.target.value)} 
-                    className="border border-slate-200 rounded-md px-2 py-1 text-xs bg-white text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
-                  />
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs font-medium text-slate-500 pl-1.5">ตั้งแต่:</span>
+                    <input 
+                      type="date" 
+                      value={ds1} 
+                      onChange={e => setDs1(e.target.value)}
+                      className="border border-slate-200 bg-white hover:border-emerald-400 text-slate-800 font-semibold rounded-md px-2 py-1 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs font-medium text-slate-500">ถึง:</span>
+                    <input 
+                      type="date" 
+                      value={ds2} 
+                      onChange={e => setDs2(e.target.value)}
+                      className="border border-slate-200 bg-white hover:border-emerald-400 text-slate-800 font-semibold rounded-md px-2 py-1 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
                 </div>
               )}
 
-              {/* Mode 2: Month Range */}
+              {/* Mode 2: Month Range (1 เดือน) */}
               {dateMode === 'month' && (
                 <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200/80">
-                  <span className="text-xs font-medium text-slate-500 pl-1.5">เดือน:</span>
+                  <span className="text-xs font-medium text-slate-500 pl-1.5">เลือกเดือน:</span>
                   <div className="relative inline-flex items-center">
                     <select
                       value={selectedMonth}
@@ -571,7 +586,7 @@ export default function AppBrowserTabs() {
                     >
                       {thaiMonths.map(m => (
                         <option key={m.value} value={m.value}>
-                          เดือน {m.name} (ปี {currentCalYear + 543})
+                          {m.name} ({currentCalYear + 543})
                         </option>
                       ))}
                     </select>
@@ -611,20 +626,8 @@ export default function AppBrowserTabs() {
               </button>
             </div>
 
-            {/* Action Buttons: ส่งออก Excel & ทดสอบส่ง Telegram */}
+            {/* Action Buttons: ส่งออก Excel */}
             <div className="flex items-center gap-2">
-              {mainTab === 'ipd' && (
-                <button
-                  onClick={handleSendTelegramTest}
-                  disabled={telegramLoading}
-                  className="inline-flex items-center gap-1.5 bg-sky-50 hover:bg-sky-100 active:bg-sky-200 text-sky-700 hover:text-sky-900 text-xs font-semibold px-3 py-2 rounded-lg border border-sky-200 shadow-2xs transition cursor-pointer disabled:opacity-50"
-                  title="ทดสอบส่งสรุปชาร์ตค้างเข้ากลุ่ม Telegram ตอนนี้"
-                >
-                  <Send className={`h-3.5 w-3.5 ${telegramLoading ? 'animate-bounce' : ''}`} />
-                  <span>{telegramLoading ? 'กำลังส่ง...' : 'ทดสอบส่ง Telegram'}</span>
-                </button>
-              )}
-
               <button 
                 onClick={mainTab === 'ipd' ? exportIPDCSV : exportOPDCSV}
                 className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 hover:text-slate-900 text-xs font-semibold px-3.5 py-2 rounded-lg border border-slate-300 shadow-2xs transition cursor-pointer"

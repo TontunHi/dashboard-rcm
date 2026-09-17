@@ -190,6 +190,19 @@ export default function SssDentalPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 space-y-5">
         
+        {/* Page Title & Scope Header */}
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl border border-emerald-100 shadow-sm">
+          <div>
+            <h1 className="text-lg sm:text-xl font-extrabold text-emerald-950 flex items-center gap-2">
+              <Stethoscope className="h-6 w-6 text-emerald-600" />
+              รายงานการให้บริการทันตกรรมสิทธิ์ประกันสังคม  โรงพยาบาลเถิน
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              สรุปผลการให้บริการทันตกรรมสิทธิ์ประกันสังคม (2.1.1.1) จำแนกตามทันตแพทย์ • ติดตามจำนวนครั้ง ค่ารักษาพยาบาล สิทธิเบิกจ่าย และลูกหนี้คงค้าง
+            </p>
+          </div>
+        </div>
+
         {/* Global Control Bar (Matching /ipd structure) */}
         <section className="bg-white rounded-xl shadow-sm border border-emerald-100 p-4 space-y-3.5">
           {/* Row 1: Mode Switcher + Dates + Fetch + Export CSV */}
