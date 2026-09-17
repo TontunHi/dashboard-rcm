@@ -119,7 +119,9 @@ async function sendTelegramNotification() {
         msg += `${idx + 1}. ${doc.doctor_name}\n`;
         msg += `   ✅ ลง ${Number(doc.completed_charts).toLocaleString()}/${Number(doc.total_charts).toLocaleString()} ชาร์ต • ⏳ ยังไม่ได้สรุป <b>${Number(doc.uncompleted_charts).toLocaleString()}</b> ชาร์ต\n\n`;
       });
-      msg += `━━━━━━━━━━━━━━━`;
+      msg += `━━━━━━━━━━━━━━━\n`;
+      msg += `🌐 <b>สามารถกดดู Dashboard ด้วยเครือข่ายในโรงพยาบาล :</b>\n`;
+      msg += `http://192.168.1.142:6060/ipd`;
     }
 
     // 4. ส่ง Request เข้า Telegram
