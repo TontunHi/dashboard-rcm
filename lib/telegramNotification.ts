@@ -149,6 +149,8 @@ export function formatTelegramMessage(data: IPDChartReportData): string {
     msg += `   ✅ ลง ${doc.completed_charts.toLocaleString()}/${doc.total_charts.toLocaleString()} ชาร์ต • ⏳ ยังไม่ได้สรุป <b>${doc.uncompleted_charts.toLocaleString()}</b> ชาร์ต\n\n`;
   });
 
-  msg += `━━━━━━━━━━━━━━━`;
+  msg += `━━━━━━━━━━━━━━━\n`;
+  msg += `🌐 <b>สามารถกดดู Dashboard ด้วยเครือข่ายในโรงพยาบาล :</b>\n`;
+  msg += `<a href="http://192.168.1.142:6060/ipd">http://192.168.1.142:6060/ipd</a>`;
   return msg;
 }

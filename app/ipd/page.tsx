@@ -905,7 +905,7 @@ export default function AppBrowserTabs() {
                 ipdSubTab === 'overview' ? 'border-emerald-600 text-emerald-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
-              📊 กราฟสรุปหอผู้ป่วย & สิทธิ (Charts)
+              📊 กราฟสรุป (Charts)
             </button>
           </div>
 
@@ -1107,14 +1107,25 @@ export default function AppBrowserTabs() {
 
           {/* SubTab: Charts Overview */}
           {ipdSubTab === 'overview' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              {/* กราฟ 1: จำนวนผู้ป่วยแยกตามแพทย์ Admit */}
               <div className="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm space-y-4">
-                <h3 className="text-sm font-bold text-slate-700">จำนวนผู้ป่วยแยกตามหอผู้ป่วย (Ward)</h3>
-                <div className="h-72 w-full">
+                <div className="border-b border-slate-100 pb-2.5">
+                  <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                    <Users className="h-4 w-4 text-emerald-600" />
+                    จำนวนผู้ป่วยแยกตามแพทย์ Admit
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">เรียงตามจำนวนผู้ป่วยที่รับไว้รักษา (ราย)</p>
+                </div>
+                <div className="h-80 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={doctorSummaryData.slice(0, 10).map(d => ({ name: d.doctor, cases: d.cases }))} layout="vertical" margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={130} tick={{ fontSize: 10 }} />
+                    <BarChart 
+                      data={doctorSummaryData.slice(0, 10).map(d => ({ name: d.doctor, cases: d.cases }))} 
+                      layout="vertical" 
+                      margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                    >
+                      <XAxis type="number" tick={{ fontSize: 11 }} />
+                      <YAxis dataKey="name" type="category" width={125} tick={{ fontSize: 10 }} />
                       <Tooltip formatter={(val: any) => [`${val} ราย`, 'ผู้ป่วย Admit']} />
                       <Bar dataKey="cases" fill="#059669" radius={[0, 4, 4, 0]} />
                     </BarChart>
@@ -1122,15 +1133,58 @@ export default function AppBrowserTabs() {
                 </div>
               </div>
 
+              {/* กราฟ 2: ผลรวมค่าความยากโรค SumAdjRW แยกตามแพทย์ Admit */}
               <div className="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm space-y-4">
-                <h3 className="text-sm font-bold text-slate-700">ผลรวมค่าความยากโรค (SumAdjRW แยกตามแพทย์ Admit)</h3>
-                <div className="h-72 w-full">
+                <div className="border-b border-slate-100 pb-2.5">
+                  <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                    <Activity className="h-4 w-4 text-teal-600" />
+                    ผลรวมค่าความยากโรค SumAdjRW แยกตามแพทย์ Admit
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">ผลรวมค่าน้ำหนักสัมพัทธ์ (SumAdjRW)</p>
+                </div>
+                <div className="h-80 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={doctorSummaryData.slice(0, 10).map(d => ({ name: d.doctor, sumAdjrw: Number(d.sumAdjrw.toFixed(2)) }))} layout="vertical" margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={130} tick={{ fontSize: 10 }} />
+                    <BarChart 
+                      data={doctorSummaryData.slice(0, 10).map(d => ({ name: d.doctor, sumAdjrw: Number(d.sumAdjrw.toFixed(4)) }))} 
+                      layout="vertical" 
+                      margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                    >
+                      <XAxis type="number" tick={{ fontSize: 11 }} />
+                      <YAxis dataKey="name" type="category" width={125} tick={{ fontSize: 10 }} />
                       <Tooltip formatter={(val: any) => [`${val}`, 'SumAdjRW']} />
                       <Bar dataKey="sumAdjrw" fill="#0d9488" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* กราฟ 3: ผลรวมค่าความยากโรค Cmi แยกตามแพทย์ D/C */}
+              <div className="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm space-y-4">
+                <div className="border-b border-slate-100 pb-2.5">
+                  <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                    <Stethoscope className="h-4 w-4 text-indigo-600" />
+                    ผลรวมค่าความยากโรค Cmi แยกตามแพทย์ D/C
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">ค่าเฉลี่ยความซับซ้อนโรค (CMI = SumAdjRW / Cases)</p>
+                </div>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart 
+                      data={doctorDcSummaryData
+                        .filter(d => d.cases > 0)
+                        .slice(0, 10)
+                        .map(d => ({ 
+                          name: d.doctor, 
+                          cmi: Number((d.sumAdjrw / d.cases).toFixed(4)) 
+                        }))
+                      } 
+                      layout="vertical" 
+                      margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                    >
+                      <XAxis type="number" tick={{ fontSize: 11 }} />
+                      <YAxis dataKey="name" type="category" width={125} tick={{ fontSize: 10 }} />
+                      <Tooltip formatter={(val: any) => [`${val}`, 'CMI (แพทย์ D/C)']} />
+                      <Bar dataKey="cmi" fill="#6366f1" radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
