@@ -150,7 +150,7 @@ export function formatTelegramMessage(data: IPDChartReportData): string {
   });
 
   msg += `━━━━━━━━━━━━━━━\n`;
-  msg += `🌐 <b>สามารถกดดู Dashboard ด้วยเครือข่ายในโรงพยาบาล :</b>\n`;
-  msg += `<a href="http://192.168.1.142:6060/ipd">http://192.168.1.142:6060/ipd</a>`;
+  msg += `🌐 สามารถกดดู Dashboard ด้วยเครือข่ายในโรงพยาบาล : \n`;
+  msg += `http://192.168.1.142:6060/ipd`;
   return msg;
 }

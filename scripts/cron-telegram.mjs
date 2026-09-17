@@ -120,7 +120,7 @@ async function sendTelegramNotification() {
         msg += `   ✅ ลง ${Number(doc.completed_charts).toLocaleString()}/${Number(doc.total_charts).toLocaleString()} ชาร์ต • ⏳ ยังไม่ได้สรุป <b>${Number(doc.uncompleted_charts).toLocaleString()}</b> ชาร์ต\n\n`;
       });
       msg += `━━━━━━━━━━━━━━━\n`;
-      msg += `🌐 <b>สามารถกดดู Dashboard ด้วยเครือข่ายในโรงพยาบาล :</b>\n`;
+      msg += `🌐 สามารถกดดู Dashboard ด้วยเครือข่ายในโรงพยาบาล : \n`;
       msg += `http://192.168.1.142:6060/ipd`;
     }
 
