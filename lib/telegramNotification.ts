@@ -131,7 +131,7 @@ export function formatTelegramMessage(data: IPDChartReportData): string {
   const shortDateStr = `${now.getDate()} ${thaiMonthsShort[now.getMonth()]} ${String(now.getFullYear() + 543).slice(-2)}`;
   const shortFyStr = `ปีงบ ${String(data.fiscalYear).slice(-2)}`;
 
-  let msg = `🏥 <b>สรุปชาร์ต IPD ค้างส่ง</b>\n`;
+  let msg = `🏥 <b>สรุปชาร์ต IPD ค้างสรุป</b>\n`;
   msg += `📅 ${shortDateStr} | ${timeStr} | ${shortFyStr}\n`;
   msg += `━━━━━━━━━━━━━━━\n`;
   msg += `📊 รวม <b>${data.grandTotal.total_charts.toLocaleString()}</b> ชาร์ต | สรุปแล้ว <b>${data.grandTotal.completed_charts.toLocaleString()}</b> (${data.grandTotal.completed_percentage.toFixed(1)}%)\n`;
@@ -139,14 +139,14 @@ export function formatTelegramMessage(data: IPDChartReportData): string {
   msg += `━━━━━━━━━━━━━━━\n\n`;
 
   if (data.doctors.length === 0) {
-    msg += `✅ <i>ไม่มีแพทย์ที่มีชาร์ตค้างส่งในขณะนี้</i>\n`;
+    msg += `✅ <i>ไม่มีแพทย์ที่มีชาร์ตค้างสรุปในขณะนี้</i>\n`;
     msg += `━━━━━━━━━━━━━━━`;
     return msg;
   }
 
   data.doctors.forEach((doc, idx) => {
     msg += `${idx + 1}. ${doc.doctor_name}\n`;
-    msg += `   ✅ ลง ${doc.completed_charts.toLocaleString()}/${doc.total_charts.toLocaleString()} ชาร์ต • ⏳ ยังไม่ได้ลง <b>${doc.uncompleted_charts.toLocaleString()}</b> ชาร์ต\n\n`;
+    msg += `   ✅ ลง ${doc.completed_charts.toLocaleString()}/${doc.total_charts.toLocaleString()} ชาร์ต • ⏳ ยังไม่ได้สรุป <b>${doc.uncompleted_charts.toLocaleString()}</b> ชาร์ต\n\n`;
   });
 
   msg += `━━━━━━━━━━━━━━━`;

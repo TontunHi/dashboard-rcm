@@ -104,7 +104,7 @@ async function sendTelegramNotification() {
     const shortDateStr = `${now.getDate()} ${thaiMonthsShort[now.getMonth()]} ${String(now.getFullYear() + 543).slice(-2)}`;
     const shortFyStr = `ปีงบ ${String(fiscalYear + 543).slice(-2)}`;
 
-    let msg = `🏥 <b>สรุปชาร์ต IPD ค้างส่ง</b>\n`;
+    let msg = `🏥 <b>สรุปชาร์ต IPD ค้างสรุป</b>\n`;
     msg += `📅 ${shortDateStr} | 08:30 น. | ${shortFyStr}\n`;
     msg += `━━━━━━━━━━━━━━━\n`;
     msg += `📊 รวม <b>${totalCharts.toLocaleString()}</b> ชาร์ต | สรุปแล้ว <b>${completedCharts.toLocaleString()}</b> (${percent}%)\n`;
@@ -112,12 +112,12 @@ async function sendTelegramNotification() {
     msg += `━━━━━━━━━━━━━━━\n\n`;
 
     if (docRows.length === 0) {
-      msg += `✅ <i>ไม่มีแพทย์ที่มีชาร์ตค้างส่งในขณะนี้</i>\n`;
+      msg += `✅ <i>ไม่มีแพทย์ที่มีชาร์ตค้างสรุปในขณะนี้</i>\n`;
       msg += `━━━━━━━━━━━━━━━`;
     } else {
       docRows.forEach((doc, idx) => {
         msg += `${idx + 1}. ${doc.doctor_name}\n`;
-        msg += `   ✅ ลง ${Number(doc.completed_charts).toLocaleString()}/${Number(doc.total_charts).toLocaleString()} ชาร์ต • ⏳ ยังไม่ได้ลง <b>${Number(doc.uncompleted_charts).toLocaleString()}</b> ชาร์ต\n\n`;
+        msg += `   ✅ ลง ${Number(doc.completed_charts).toLocaleString()}/${Number(doc.total_charts).toLocaleString()} ชาร์ต • ⏳ ยังไม่ได้สรุป <b>${Number(doc.uncompleted_charts).toLocaleString()}</b> ชาร์ต\n\n`;
       });
       msg += `━━━━━━━━━━━━━━━`;
     }
