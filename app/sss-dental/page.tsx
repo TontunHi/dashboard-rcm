@@ -463,7 +463,7 @@ export default function SssDentalPage() {
                   <th className="py-2.5 px-2 w-[48px] min-w-[48px] max-w-[48px] text-center sticky left-0 z-30 bg-slate-100 border-b border-slate-200">#</th>
                   <th className="py-2.5 px-3 w-[220px] min-w-[220px] max-w-[220px] text-center sticky left-[48px] z-30 bg-slate-100 border-b border-slate-200">ชื่อแพทย์</th>
                   <th className="py-2.5 px-3 w-[90px] min-w-[90px] max-w-[90px] text-center sticky left-[268px] z-30 bg-slate-100 border-b border-slate-200">ครั้งตรวจ</th>
-                  <th className="py-2.5 px-3 w-[120px] min-w-[120px] max-w-[120px] text-center font-bold text-slate-900 bg-emerald-100/70 sticky left-[358px] z-30 border-b border-slate-200">ค่ารักษารวม</th>
+                  <th className="py-2.5 px-3 w-[120px] min-w-[120px] max-w-[120px] text-center font-bold text-slate-900 bg-emerald-100 sticky left-[358px] z-30 border-b border-slate-200">ค่ารักษารวม</th>
                   <th className="py-2.5 px-3 w-[110px] min-w-[110px] max-w-[110px] text-center text-emerald-800 sticky left-[478px] z-30 bg-slate-100 border-b border-slate-200">สิทธิเบิก</th>
                   <th className="py-2.5 px-3 w-[100px] min-w-[100px] max-w-[100px] text-center text-amber-800 sticky left-[588px] z-30 bg-slate-100 border-b border-slate-200">ชำระเอง</th>
                   <th className="py-2.5 px-3 w-[110px] min-w-[110px] max-w-[110px] text-center text-rose-800 sticky left-[688px] z-30 bg-slate-100 border-b border-slate-200 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.15)]">ลูกหนี้ค้าง</th>
@@ -505,7 +505,7 @@ export default function SssDentalPage() {
                         <td className="py-2 px-3 w-[90px] min-w-[90px] max-w-[90px] text-center font-medium font-mono sticky left-[268px] z-20 bg-white group-hover:bg-slate-50 border-b border-slate-100">
                           {formatNumber(doc.total_visits)}
                         </td>
-                        <td className="py-2 px-3 w-[120px] min-w-[120px] max-w-[120px] text-center font-bold text-slate-900 bg-emerald-50/90 group-hover:bg-emerald-100/70 font-mono sticky left-[358px] z-20 border-b border-slate-100">
+                        <td className="py-2 px-3 w-[120px] min-w-[120px] max-w-[120px] text-center font-bold text-slate-900 bg-[#ecfdf5] group-hover:bg-[#d1fae5] font-mono sticky left-[358px] z-20 border-b border-slate-100">
                           {formatCurrency(doc.total_income)}
                         </td>
                         <td className="py-2 px-3 w-[110px] min-w-[110px] max-w-[110px] text-center text-emerald-700 font-medium font-mono sticky left-[478px] z-20 bg-white group-hover:bg-slate-50 border-b border-slate-100">
@@ -546,7 +546,7 @@ export default function SssDentalPage() {
                       <td className="py-2.5 px-3 w-[90px] min-w-[90px] max-w-[90px] text-center font-bold text-slate-900 font-mono sticky left-[268px] z-20 bg-slate-100 border-t-2 border-slate-300">
                         {formatNumber(grandTotal.visits)}
                       </td>
-                      <td className="py-2.5 px-3 w-[120px] min-w-[120px] max-w-[120px] text-center font-extrabold text-emerald-900 bg-emerald-100/90 font-mono sticky left-[358px] z-20 border-t-2 border-slate-300">
+                      <td className="py-2.5 px-3 w-[120px] min-w-[120px] max-w-[120px] text-center font-extrabold text-emerald-900 bg-[#d1fae5] font-mono sticky left-[358px] z-20 border-t-2 border-slate-300">
                         {formatCurrency(grandTotal.income)}
                       </td>
                       <td className="py-2.5 px-3 w-[110px] min-w-[110px] max-w-[110px] text-center font-bold text-emerald-800 font-mono sticky left-[478px] z-20 bg-slate-100 border-t-2 border-slate-300">
